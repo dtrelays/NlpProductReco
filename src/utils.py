@@ -10,6 +10,8 @@ import pickle
 
 from src.exception import CustomException
 
+nltk.data.path.append("./nltk_data")
+
 nltk.download('stopwords')
 
 stop_words = set(stopwords.words('english'))
