@@ -2,9 +2,10 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import os
-from src.utils import load_object
+import sys
 
 from src.components.model_trainer import ModelTrainerConfig
+from src.exception import CustomException
 
 from gensim.models import FastText
 from gensim.models import Word2Vec
@@ -26,10 +27,10 @@ bert_product_vector_path = config.trained_vector_path_bert
 @st.cache_resource
 def load_model():
 
-    model_fastext = Word2Vec.load(word2vec_model_path)
-    model_word2vec = FastText.load(fastext_model_path)
+    model_fastext = Word2Vec.load(fastext_model_path)
+    model_word2vec = FastText.load(word2vec_model_path)
     model_bert=SentenceTransformer('bert-base-nli-mean-tokens')
-    
+
     product_vector_fastext = np.load(fastext_product_vector_path)
     product_vector_word2vec = np.load(word2vec_product_vector_path)
     product_vector_bert = np.load(bert_product_vector_path)
@@ -43,23 +44,42 @@ model_ftx,model_wvc,model_brt,pv_ftx,pv_wvc,pv_brt=load_model()
 def main():
     
     # Set the background color for the app
-    st.markdown(
-        """
-        <style>
-        body {
-            background-color: #f0f5f9;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
 
+    html_temp = """
+    <div style="background-color: #FF725C; padding: 10px; text-align: center;">
+        <h1 style="color: #FFFFFF; font-size: 26px; font-weight: bold; text-transform: uppercase;">Grocery Mart Product Recommendation App</h1>
+    </div>
+    """
+
+    st.markdown(html_temp, unsafe_allow_html=True)
+
+    # Custom styling for the input fields
+    input_style = """
+    <style>
+    .stTextInput, .stNumberInput, .stSelectbox {
+        background-color: #FFFFFF;
+        color: #333333;
+        font-size: 16px;
+        font-weight: bold;
+        padding: 8px;
+        border-radius: 8px;
+        box-shadow: none;
+        border: 1px solid #111111;
+        margin-bottom: 16px;
+    }
+    .stTextInput:focus, .stNumberInput:focus, .stSelectbox:focus {
+        border: 2px solid #05386B;
+        box-shadow: none;
+    }
+    </style>
+    """
+    st.markdown(input_style, unsafe_allow_html=True)
     
     # Create a search box
     search_query = st.text_input("Enter a product name:")
     
     # Create a dropdown to select the model
-    model_options = [ "fasttext","word2vec","bert"]
+    model_options = [ "fastext","word2vec","bert"]
     selected_model = st.selectbox("Select a model:", model_options)
 
 
@@ -68,27 +88,38 @@ def main():
         
         obj = PredictPipeline()
         
-        if selected_model=="fasttext":
-            model_final = model_ftx
-            product_vector_final = pv_ftx
+        try:
+            if selected_model=="fastext":
+                model_final = model_ftx
+                product_vector_final = pv_ftx
+                
+            elif selected_model=="word2vec":
+                model_final = model_wvc
+                product_vector_final = pv_wvc
+                
+            elif selected_model=="bert":
+                model_final = model_brt
+                product_vector_final = pv_brt
+                    
+            df_clean_final = obj.predict(search_query, selected_model, model_final, product_vector_final)    
             
-        elif selected_model=="word2vec":
-            model_final = model_wvc
-            product_vector_final = pv_wvc
+            # Display the product information in a table
+            if not df_clean_final.empty:
+                 # Add a title to the table
+                st.markdown("<h2 style='text-align: left; color: #006699;font-size: 24px;'>Top Recommended Products:</h2>", unsafe_allow_html=True)
+                
+                st.table(df_clean_final.style.set_properties(**{'text-align': 'center'}))
+            else:
+                st.write("No products found.")
             
-        elif selected_model=="bert":
-            model_final = model_brt
-            product_vector_final = pv_brt
+       
+        except CustomException as e:
+
+            if "Key" in str(e):
+                st.error("Please choose a different model, the query is out of scope for word2vec model.")
+            else:
+                st.write("An error occurred:", e)
             
-        df_clean_final=obj.predict(search_query,model_final,product_vector_final)
-        
-        
-        # Display the product information in a table
-        if not df_clean_final.empty:
-            st.table(df_clean_final.style.set_properties(**{'text-align': 'center'}))
-        else:
-            st.write("No products found.")
-        
         
         # Reset button
         if st.button("Reset"):

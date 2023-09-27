@@ -17,10 +17,11 @@ clean_data_path = DataIngestionConfig().clean_data_path
 class PredictPipeline:
     def __init__(self):
         pass
+    
 
     def predict(self,query,selected_model,model_final,product_vector_final):
-        try:
-            
+        
+        try:    
             sentences,df_clean=data_transformation.initiate_data_transformation(clean_data_path)
                         
             if(selected_model=="word2vec"):
@@ -43,14 +44,24 @@ class PredictPipeline:
                 
             df_clean_final = df_clean[['product','category','brand','market_price']].head(10)
             
+            df_clean_final['market_price'] = df_clean_final['market_price'].astype(int)
+            df_clean_final.rename(columns = {'product':'Product'}, inplace = True)
+            df_clean_final.rename(columns = {'category':'Category'}, inplace = True)
+            df_clean_final.rename(columns = {'brand':'Brand'}, inplace = True)
+            df_clean_final.rename(columns = {'market_price':'MRP'}, inplace = True)
+            
+            #hide index before displaying
+            df_clean_final.index = np.arange(1, len(df_clean_final) + 1)
+            df_clean_final.index.name = 'Rank'
+            
             return df_clean_final
         
         except Exception as e:
             raise CustomException(e,sys)
 
 
-
-def get_similarity_fastext(model, user_query,product_vector_final):
+def get_similarity_fastext(model,user_query,product_vector_final):
+    
     user_query = remove_special_characters(user_query)
     user_query = remove_stop_words(user_query)
 
@@ -71,26 +82,31 @@ def get_similarity_fastext(model, user_query,product_vector_final):
 
 
 def get_similarity_word2vec(model, user_query,product_vector_final):
-    user_query = remove_special_characters(user_query)
-    user_query = remove_stop_words(user_query)
-
-    # Load the saved sentence vectors
-    sentence_vectors = product_vector_final
     
-    # Convert the query to a list of words
-    query_words = user_query.split()
+    try:
+        user_query = remove_special_characters(user_query)
+        user_query = remove_stop_words(user_query)
 
-    # Calculate the query vector
-    query_vector = model.wv[query_words].mean(axis=0)
+        # Load the saved sentence vectors
+        sentence_vectors = product_vector_final
+        
+        # Convert the query to a list of words
+        query_words = user_query.split()
 
-    # Calculate the cosine similarity between the query and the pre-computed sentence vectors
-    cosine_similarity_scores = []
+        # Calculate the query vector
+        query_vector = model.wv[query_words].mean(axis=0)
 
-    for product_vector in sentence_vectors:
-        cosine_similarity_score = np.dot(query_vector, product_vector) / (np.linalg.norm(query_vector) * np.linalg.norm(product_vector))
-        cosine_similarity_scores.append(cosine_similarity_score)
+        # Calculate the cosine similarity between the query and the pre-computed sentence vectors
+        cosine_similarity_scores = []
 
-    return cosine_similarity_scores
+        for product_vector in sentence_vectors:
+            cosine_similarity_score = np.dot(query_vector, product_vector) / (np.linalg.norm(query_vector) * np.linalg.norm(product_vector))
+            cosine_similarity_scores.append(cosine_similarity_score)
+
+        return cosine_similarity_scores
+
+    except Exception as e:
+            raise CustomException(e,sys)
 
 
 def get_similarity_bert(model,user_query,product_vector_final):
