@@ -1,131 +1,86 @@
+import numpy as np
 import os
 import sys
 from dataclasses import dataclass
 
-from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, roc_curve, precision_score, recall_score, f1_score
-from sklearn.metrics import precision_recall_curve, auc
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.linear_model import LogisticRegression
-from xgboost import XGBClassifier
-from catboost import CatBoostClassifier
-import lightgbm as lgb
+from gensim.models import FastText
+from gensim.models import Word2Vec
+from sentence_transformers import SentenceTransformer
+import pickle
 
 from src.exception import CustomException
 from src.logger import logging
 
-from src.utils import save_object,evaluate_models, get_model_accuracy
+from src.utils import save_object
+
 
 @dataclass
 class ModelTrainerConfig:
-    trained_model_file_path=os.path.join("artifacts","model.pkl")
+    trained_model_word2vec=os.path.join("artifacts","model_word2vec.model")
+    trained_model_fastext=os.path.join("artifacts","model_fastext.model")
+    trained_vector_path_fastext=os.path.join("artifacts","product_vectors_fastext.npy")
+    trained_vector_path_wordtovec=os.path.join("artifacts","product_vectors_wordtovec.npy")
+    trained_vector_path_bert=os.path.join("artifacts","product_embeddings_bert.npy")
+
 
 class ModelTrainer:
     def __init__(self):
         self.model_trainer_config=ModelTrainerConfig()
 
-
-    def initiate_model_trainer(self,train_array,test_array):
+    def initiate_model_trainer(self,sentence_list,df_clean_data):
         try:
-            logging.info("Split training and test input data")
-            X_train,y_train,X_test,y_test=(
-                train_array[:,:-1],
-                train_array[:,-1],
-                test_array[:,:-1],
-                test_array[:,-1]
-            )
-            models = {
-            "Logistic Regression": LogisticRegression(),
-            "XGBClassifier": XGBClassifier(verbose=0),
-            "CatBoost Classifier": CatBoostClassifier(verbose=False),
-            "Decision Tree": DecisionTreeClassifier(),
-            "Random Forest Classifier": RandomForestClassifier(),
-            "Light GBM Classifier":lgb.LGBMClassifier(),
-        }
+            logging.info("Training vocab using word2vec and fastext")
             
-                        
-            params = {
-                "Logistic Regression": {
-                    "C": [0.001, 0.01, 0.1, 1, 10],
-                    "penalty": ["l1", "l2"]
-                },
-                "XGBClassifier": {
-                    "learning_rate": [0.01, 0.1, 0.2],
-                    "n_estimators": [100, 200, 300],
-                    "max_depth": [3, 4, 5,10,20],
-                    "min_child_weight": [1, 2, 3],
-                    "subsample": [0.8, 0.9, 1.0],
-                    "colsample_bytree": [0.8, 0.9, 1.0]
-                },
-                "CatBoost Classifier": {
-                    "iterations": [100, 200, 300],
-                    "learning_rate": [0.01, 0.1, 0.2],
-                    "depth": [3, 4, 5,10,20],
-                    "l2_leaf_reg": [1, 3, 5, 7, 9]
-                },
-                "Decision Tree": {
-                    "max_depth": [10, 20, 30],
-                    "min_samples_split": [2, 5, 10],
-                    "min_samples_leaf": [1, 2, 4],
-                    "criterion": ["gini", "entropy"]
-                },
-                "Random Forest Classifier": {
-                    "n_estimators": [100, 200, 300],
-                    "max_depth": [10, 20, 30],
-                    "min_samples_split": [2, 5, 10],
-                    "min_samples_leaf": [1, 2, 4],
-                    "criterion": ["gini", "entropy"]
-                },
-                "Light GBM Classifier": {
-                    "learning_rate": [0.01, 0.1, 0.2],
-                    "n_estimators": [100, 200, 300],
-                    "max_depth": [3, 4, 5,10,20],
-                    "num_leaves": [31, 63, 127]
-                }
-            }
+            # Model using Word2Vec
+            model_wordtovec = Word2Vec(sentence_list, vector_size=200, window=20, min_count=1, sg=0,alpha=0.05, epochs=100, negative=5) 
+          
+            # Model using FastText
+            model_fastext = FastText(sentence_list, vector_size=200, window=20, min_count=1, sg=0,epochs=100)
 
-            model_report=evaluate_models(X_train=X_train,y_train=y_train,X_val=X_test,y_val=y_test,
-                                             models=models,params=params)
-            
-            ## To get best model score from dict
-            best_model_score = model_report.loc[0,'Recall']
+            logging.info("Saving the trained model fastext and word2vec")
 
-            ## To get best model name from dict
+            model_fastext.save(self.model_trainer_config.trained_model_fastext)
+            model_wordtovec.save(self.model_trainer_config.trained_model_word2vec)
 
-            best_model_name = model_report.loc[0,'Model']
-            
-            best_model = models[best_model_name]
-            
-            best_params = model_report.loc[0,'ModelParams']
-            
-            print(best_model)
-            
-            logging.info(f"Best found model: {best_model_name}")
-            logging.info(f"Best found model recall: {best_model_score}")
-            logging.info(f"Best found model params: {best_params}")
+            product_vectors_fastext = []
 
-            model_and_params = {
-                            "model": best_model,
-                            "params": best_params
-                            }
-
-            if best_model_score<0.6:
-                raise CustomException("No best model found")
-            logging.info(f"Best found model on both training and testing dataset")
-
-            save_object(
-                file_path=self.model_trainer_config.trained_model_file_path,
-                obj=model_and_params
-            )
-
-            model_with_loaded_params = best_model.set_params(**best_params)
+            for product_name_description_sentence in df_clean_data['combined_text']:
+                vector_fastext = model_fastext.wv[product_name_description_sentence]
+                product_vectors_fastext.append(vector_fastext)
             
-            predicted = model_with_loaded_params.predict(X_test)
+            logging.info("Embedding of the product vectors trained using fastext")
+            
+            # Save the sentence vectors to a file using a format like Pickle or NumPy
+            np.save(self.model_trainer_config.trained_vector_path_fastext, np.array(product_vectors_fastext))
 
-            accuracy,precision,recall,f1_score,roc_auc = get_model_accuracy(y_test, predicted)
+            sentence_vectors_wordtovec = []
+
+            for product_name_description_sentence in df_clean_data['combined_text']:
+                words = product_name_description_sentence.split()
+                vector = model_wordtovec.wv[words].mean(axis=0)
+                sentence_vectors_wordtovec.append(vector)
+
+            logging.info("Saving Embedding of the product vectors trained using word2vec")
+
+            # Save the sentence vectors to a file using a format like Pickle or NumPy
+            np.save(self.model_trainer_config.trained_vector_path_wordtovec, np.array(sentence_vectors_wordtovec))
             
-            return recall
             
+            # Model using Bert
+            model_bert = SentenceTransformer('bert-base-uncased')
+
+            product_embeddings_bert = model_bert.encode(df_clean_data['combined_text'].tolist())
+            
+            logging.info("Saving Embedding of the product vectors trained using bert")
+
+            # Save the product embeddings to a file (e.g., a Pickle file)
+            np.save(self.model_trainer_config.trained_vector_path_bert, product_embeddings_bert)
+            
+            trained_wordtovec_len = len(sentence_vectors_wordtovec)
+            trained_fastext_len = len(product_vectors_fastext)
+            trained_bert_len = product_embeddings_bert.shape[0]
+            
+            return trained_wordtovec_len,trained_fastext_len,trained_bert_len
             
         except Exception as e:
             raise CustomException(e,sys)
