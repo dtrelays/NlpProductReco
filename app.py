@@ -26,8 +26,7 @@ word2vec_product_vector_path = config.trained_vector_path_wordtovec
 bert_product_vector_path = config.trained_vector_path_bert
 
 
-
-@st.cache_resource
+@st.cache_resource(ttl=60 * 60 * 24) 
 def load_model():
 
     model_fastext = Word2Vec.load(fastext_model_path)
