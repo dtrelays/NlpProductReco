@@ -16,6 +16,9 @@ from src.pipeline.predict_pipeline import PredictPipeline
 
 config = ModelTrainerConfig()
 
+# Add the path to the src package to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "src")))
+
 word2vec_model_path = config.trained_model_word2vec
 fastext_model_path = config.trained_model_fastext
 fastext_product_vector_path =config.trained_vector_path_fastext

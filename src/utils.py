@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+import nltk
 from nltk.corpus import stopwords
 import numpy as np 
 import pandas as pd
@@ -8,6 +9,8 @@ import dill
 import pickle  
 
 from src.exception import CustomException
+
+nltk.download('stopwords')
 
 stop_words = set(stopwords.words('english'))
 
