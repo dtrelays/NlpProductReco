@@ -32,9 +32,9 @@ def load_model():
     model_word2vec = FastText.load(word2vec_model_path)
     model_bert=SentenceTransformer('bert-base-nli-mean-tokens')
 
-    product_vector_fastext = np.load(fastext_product_vector_path)
-    product_vector_word2vec = np.load(word2vec_product_vector_path)
-    product_vector_bert = np.load(bert_product_vector_path)
+    product_vector_fastext = np.load(fastext_product_vector_path,allow_pickle=True)
+    product_vector_word2vec = np.load(word2vec_product_vector_path,allow_pickle=True)
+    product_vector_bert = np.load(bert_product_vector_path,allow_pickle=True)
 
     return model_fastext,model_word2vec,model_bert,product_vector_fastext,product_vector_word2vec,product_vector_bert
 
