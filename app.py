@@ -28,8 +28,8 @@ bert_product_vector_path = config.trained_vector_path_bert
 @st.cache_resource(ttl=60 * 60 * 24) 
 def load_model():
 
-    model_fastext = Word2Vec.load(fastext_model_path)
-    model_word2vec = FastText.load(word2vec_model_path)
+    model_fastext = FastText.load(fastext_model_path)
+    model_word2vec = Word2Vec.load(word2vec_model_path)
     model_bert=SentenceTransformer('bert-base-nli-mean-tokens')
 
     product_vector_fastext = np.load(fastext_product_vector_path,allow_pickle=True)
