@@ -58,10 +58,10 @@ if __name__=="__main__":
     sentences,df_clean=data_transformation.initiate_data_transformation(clean_data)
 
     modeltrainer=ModelTrainer()
-    product_vec_wvc,product_vec_fastext,produc_vec_bert = modeltrainer.initiate_model_trainer(sentences,df_clean)
+    product_vec_wvc,product_vec_fastext = modeltrainer.initiate_model_trainer(sentences,df_clean)
     
     print("Product vector length using word2vec is ",product_vec_wvc)
     print("Product vector length using fastext is ",product_vec_fastext)
-    print("Product vector length using bert is ",produc_vec_bert)
+    # print("Product vector length using bert is ",produc_vec_bert)
     
     

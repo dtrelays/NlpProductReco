@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from gensim.models import FastText
 from gensim.models import Word2Vec
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 import pickle
 
 from src.exception import CustomException
@@ -18,7 +18,7 @@ class ModelTrainerConfig:
     trained_model_fastext=os.path.join("artifacts","model_fastext.model")
     trained_vector_path_fastext=os.path.join("artifacts","product_vectors_fastext.npy")
     trained_vector_path_wordtovec=os.path.join("artifacts","product_vectors_wordtovec.npy")
-    trained_vector_path_bert=os.path.join("artifacts","product_embeddings_bert.npy")
+    # trained_vector_path_bert=os.path.join("artifacts","product_embeddings_bert.npy")
 
 
 class ModelTrainer:
@@ -65,20 +65,21 @@ class ModelTrainer:
             
             
             # Model using Bert
-            model_bert = SentenceTransformer('bert-base-uncased')
+            # model_bert = SentenceTransformer('bert-base-uncased')
 
-            product_embeddings_bert = model_bert.encode(df_clean_data['combined_text'].tolist())
+            # product_embeddings_bert = model_bert.encode(df_clean_data['combined_text'].tolist())
             
-            logging.info("Saving Embedding of the product vectors trained using bert")
+            # logging.info("Saving Embedding of the product vectors trained using bert")
 
             # Save the product embeddings to a file (e.g., a Pickle file)
-            np.save(self.model_trainer_config.trained_vector_path_bert, product_embeddings_bert)
+            # np.save(self.model_trainer_config.trained_vector_path_bert, product_embeddings_bert)
             
             trained_wordtovec_len = len(sentence_vectors_wordtovec)
             trained_fastext_len = len(product_vectors_fastext)
-            trained_bert_len = product_embeddings_bert.shape[0]
+            # trained_bert_len = product_embeddings_bert.shape[0]
             
-            return trained_wordtovec_len,trained_fastext_len,trained_bert_len
+            return trained_wordtovec_len,trained_fastext_len
+        # ,trained_bert_len
             
         except Exception as e:
             raise CustomException(e,sys)

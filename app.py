@@ -9,7 +9,7 @@ from src.exception import CustomException
 
 from gensim.models import FastText
 from gensim.models import Word2Vec
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 
 
 from src.pipeline.predict_pipeline import PredictPipeline 
@@ -23,23 +23,21 @@ word2vec_model_path = config.trained_model_word2vec
 fastext_model_path = config.trained_model_fastext
 fastext_product_vector_path =config.trained_vector_path_fastext
 word2vec_product_vector_path = config.trained_vector_path_wordtovec
-bert_product_vector_path = config.trained_vector_path_bert
+# bert_product_vector_path = config.trained_vector_path_bert
 
 @st.cache_resource(ttl=60 * 60 * 24) 
 def load_model():
 
     model_fastext = FastText.load(fastext_model_path)
     model_word2vec = Word2Vec.load(word2vec_model_path)
-    model_bert=SentenceTransformer('bert-base-nli-mean-tokens')
-
+    # model_bert=SentenceTransformer('bert-base-nli-mean-tokens')
     product_vector_fastext = np.load(fastext_product_vector_path,allow_pickle=True)
     product_vector_word2vec = np.load(word2vec_product_vector_path,allow_pickle=True)
-    product_vector_bert = np.load(bert_product_vector_path,allow_pickle=True)
+    # product_vector_bert = np.load(bert_product_vector_path,allow_pickle=True)
 
-    return model_fastext,model_word2vec,model_bert,product_vector_fastext,product_vector_word2vec,product_vector_bert
+    return model_fastext,model_word2vec,product_vector_fastext,product_vector_word2vec
 
-
-model_ftx,model_wvc,model_brt,pv_ftx,pv_wvc,pv_brt=load_model()
+model_ftx,model_wvc,pv_ftx,pv_wvc=load_model()
 
 
 def main():
@@ -80,7 +78,7 @@ def main():
     search_query = st.text_input("Enter a product name:")
     
     # Create a dropdown to select the model
-    model_options = [ "fastext","word2vec","bert"]
+    model_options = [ "fastext","word2vec"]
     selected_model = st.selectbox("Select a model:", model_options)
 
 
@@ -98,9 +96,9 @@ def main():
                 model_final = model_wvc
                 product_vector_final = pv_wvc
                 
-            elif selected_model=="bert":
-                model_final = model_brt
-                product_vector_final = pv_brt
+            # elif selected_model=="bert":
+            #     model_final = model_brt
+            #     product_vector_final = pv_brt
                     
             df_clean_final = obj.predict(search_query, selected_model, model_final, product_vector_final)    
             

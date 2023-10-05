@@ -7,7 +7,7 @@ from src.exception import CustomException
 from src.logger import logging
 import os
 
-from src.utils import save_object,remove_special_characters,remove_stop_words
+from src.utils import save_object,remove_special_characters,remove_stop_words_and_lemmatize
 
 @dataclass
 class DataTransformationConfig:
@@ -25,7 +25,7 @@ class DataTransformation:
             logging.info("Read clean data completed")
             
             clean_data['combined_text'] = clean_data['combined_text'].apply(remove_special_characters)
-            clean_data['combined_text'] = clean_data['combined_text'].apply(remove_stop_words)
+            clean_data['combined_text'] = clean_data['combined_text'].apply(remove_stop_words_and_lemmatize)
             
             clean_data['length'] = clean_data['combined_text'].str.len()
             

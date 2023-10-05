@@ -7,5 +7,4 @@ watchdog
 dill
 gensim
 nltk
-sentence_transformers
 #-e .

@@ -3,6 +3,7 @@ import sys
 import re
 import nltk
 from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
 import numpy as np 
 import pandas as pd
 import dill
@@ -13,8 +14,13 @@ from src.exception import CustomException
 nltk.data.path.append("./nltk_data")
 
 nltk.download('stopwords')
+nltk.download('wordnet')
+
 
 stop_words = set(stopwords.words('english'))
+lemmatizer = WordNetLemmatizer()
+
+
 
 def save_object(file_path, obj):
     try:
@@ -36,7 +42,7 @@ def remove_special_characters(text):
 
     return text
 
-def remove_stop_words(text):
+def remove_stop_words_and_lemmatize(text):
     words = text.split()
-    words = [word for word in words if word.lower() not in stop_words]
+    words = [lemmatizer.lemmatize(word.lower()) for word in words if word.lower() not in stop_words]
     return ' '.join(words)

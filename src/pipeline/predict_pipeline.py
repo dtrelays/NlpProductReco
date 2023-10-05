@@ -2,7 +2,7 @@ import sys
 import pandas as pd
 import numpy as np
 from src.exception import CustomException
-from src.utils import remove_special_characters,remove_stop_words
+from src.utils import remove_special_characters,remove_stop_words_and_lemmatize
 from src.components.model_trainer import ModelTrainerConfig
 from src.components.data_transformation import DataTransformation
 from src.components.data_ingestion import DataIngestionConfig
@@ -36,11 +36,11 @@ class PredictPipeline:
                 df_clean['similarity_score_fastext'] = similarity_score     
                 df_clean = df_clean.sort_values(by=['similarity_score_fastext'], ascending=False)
             
-            elif(selected_model=="bert"):
-                model = model_final
-                similarity_score = get_similarity_bert(model, query,product_vector_final)
-                df_clean['similarity_score_bert'] = similarity_score
-                df_clean = df_clean.sort_values(by=['similarity_score_bert'], ascending=False)
+            # elif(selected_model=="bert"):
+            #     model = model_final
+            #     similarity_score = get_similarity_bert(model, query,product_vector_final)
+            #     df_clean['similarity_score_bert'] = similarity_score
+            #     df_clean = df_clean.sort_values(by=['similarity_score_bert'], ascending=False)
                 
             df_clean_final = df_clean[['product','category','brand','market_price']].head(10)
             
@@ -63,7 +63,7 @@ class PredictPipeline:
 def get_similarity_fastext(model,user_query,product_vector_final):
     
     user_query = remove_special_characters(user_query)
-    user_query = remove_stop_words(user_query)
+    user_query = remove_stop_words_and_lemmatize(user_query)
 
     # Load the saved sentence vectors
     sentence_vectors = product_vector_final
@@ -85,7 +85,7 @@ def get_similarity_word2vec(model, user_query,product_vector_final):
     
     try:
         user_query = remove_special_characters(user_query)
-        user_query = remove_stop_words(user_query)
+        user_query = remove_stop_words_and_lemmatize(user_query)
 
         # Load the saved sentence vectors
         sentence_vectors = product_vector_final
@@ -109,18 +109,18 @@ def get_similarity_word2vec(model, user_query,product_vector_final):
             raise CustomException(e,sys)
 
 
-def get_similarity_bert(model,user_query,product_vector_final):
+# def get_similarity_bert(model,user_query,product_vector_final):
     
-    product_embeddings = product_vector_final
-    query_bert = remove_special_characters(user_query)
-    query_bert = remove_stop_words(query_bert)
+#     product_embeddings = product_vector_final
+#     query_bert = remove_special_characters(user_query)
+#     query_bert = remove_stop_words(query_bert)
 
-    query_embedding = model.encode(query_bert)
+#     query_embedding = model.encode(query_bert)
 
-    cosine_similarity_scores_bert = []
+#     cosine_similarity_scores_bert = []
 
-    for product_embedding in product_embeddings:
-        cosine_similarity_score = np.dot(query_embedding, product_embedding) / (np.linalg.norm(query_embedding) * np.linalg.norm(product_embedding))
-        cosine_similarity_scores_bert.append(cosine_similarity_score)
+#     for product_embedding in product_embeddings:
+#         cosine_similarity_score = np.dot(query_embedding, product_embedding) / (np.linalg.norm(query_embedding) * np.linalg.norm(product_embedding))
+#         cosine_similarity_scores_bert.append(cosine_similarity_score)
 
-    return cosine_similarity_scores_bert
+#     return cosine_similarity_scores_bert
