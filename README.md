@@ -1,6 +1,6 @@
-![Product Search Recommendation](artifacts/image.png)
-
 # NLP Product Search Recommendation
+
+![Product Search Recommendation](artifacts/image.png)
 
 This project is an implementation of NLP-based product search and recommendation using FastText and Word2Vec. It aims to provide a solution for searching and recommending products based on user queries. The project includes the training of word embedding models using FastText and Word2Vec and a Streamlit app for interactive product search and recommendation.
 
