@@ -1,58 +1,55 @@
-# Credit Risk Prediction Classifier
+![Product Search Recommendation](artifacts/image.png)
 
-![Credit Risk Prediction](artifacts/creditrisk.png)
+# NLP Product Search Recommendation
 
+This project is an implementation of NLP-based product search and recommendation using FastText and Word2Vec. It aims to provide a solution for searching and recommending products based on user queries. The project includes the training of word embedding models using FastText and Word2Vec and a Streamlit app for interactive product search and recommendation.
 
-## 1. Problem Statement
+## 1. Project Overview
 
-The goal of this project is to develop a machine learning classifier for identifying loan customers with a high propensity to default. The objective is to predict and flag such customers during the loan approval process.
+The goal of this project is to build a recommendation system that can help users find products based on their search queries. This system utilizes Natural Language Processing (NLP) techniques and word embedding models, such as FastText and Word2Vec, to understand the semantics of product descriptions, product names, and other textual data. The models learn to represent words and phrases in a continuous vector space, allowing for efficient similarity calculations and recommendations.
+
 
 ## 2. Data Collection
 
-- **Dataset Source**: [Kaggle - Credit Risk Analysis](https://www.kaggle.com/datasets/nanditapore/credit-risk-analysis)
-- **Dataset Overview**: The dataset consists of 12 columns and approximately 32,000 rows.
+The project utilizes a dataset from Kaggle that contains product information, including product names, categories, brands, and prices. This dataset serves as the foundation for training the NLP models.
 
-### Data Columns
+You can find the dataset -> https://www.kaggle.com/datasets/surajjha101/bigbasket-entire-product-list-28k-datapoints
 
-- **Demographics**: Age
-- **Employment**: Employment Length (providing insights into the duration of employment)
-- **Financial Information**: Income, Home Details (e.g., Own/Rent), and Credit History Length (offering insights into financial stability and credit behavior)
-- **Loan Details**: Loan Amount, Loan Intent, Interest Rate, etc.
-- **Default**: Indicates whether the customer defaulted on the loan (target variable)
+## 3. Data Preprocessing and EDA
 
-## 3. Data Checks and EDA
+Before training the NLP models and building the recommendation system, the project involved several key data preprocessing steps and exploratory data analysis to clean and understand the dataset.
 
-Before proceeding with modeling, several data checks and EDA were performed:
+- Removing stop words
+- Lemmatization
+- Punctuation Removal
 
-- Checking for missing values
-- Identifying and handling duplicates
-- Verifying data types of columns
-- Investigating various categories present in different categorical columns
-- Did EDA using univariate, bivariate and multivariate analysis
+EDA was conducted to gain insights into the dataset and make informed decisions about model training parameters. Here are some aspects explored during EDA:
 
-## 4. Model Selection and Performance
+Sentence Length Analysis: The distribution of sentence lengths (e.g., product names or descriptions) was examined to understand the range of text lengths in the dataset. This information is valuable for setting model input parameters, such as maximum sequence length.
 
-Various machine learning models were experimented with, including:
+## 4. Model Selection and Training
 
-- Logistic Regression
-- Decision Tree
-- XGBoost
-- LightGBM
-- Random Forest
-- Neural Network
+The project includes two key word embedding models:
 
-The primary aim was to maximize recall while maintaining a balance between accuracy and precision. The project achieved a __recall of 0.9__ using **LightGBM** and an __ROC AUC score of 0.85__.
+FastText: FastText is used to learn word representations with subword information, which can capture the semantics of both words and subword units.
 
-## 5. Deployment
+Word2Vec: Word2Vec is used to create word vectors in a continuous vector space, allowing for semantic similarity calculations.
 
-The project's application is deployed and accessible at the following URL: [Credit Risk Prediction App](https://creditriskprediction-ur6bezvcodjpx3rqfcje7s.streamlit.app/).
+These models are trained on the dataset to capture the relationships between words and phrases.
 
+## 5.Model Inference
+
+User queries are converted into vectors using the chosen NLP model (FastText or Word2Vec). Cosine similarity is then used to rank and fetch the most relevant products for the query. This approach ensures that users receive accurate and meaningful product recommendations based on semantic similarity, rather than simple keyword matching.
+
+This enhanced search and recommendation system leverages vectorization and cosine similarity to improve the user experience and provide highly relevant product suggestions.
+
+## 6. Git details
 
 Alternatively you can clone my repository and try on your own in local
 
 ```bash
 ## Clone the repository
-git clone https://github.com/dtrelays/CreditRiskPrediction.git
+git clone https://github.com/dtrelays/NlpProductReco.git
 
 ## Install dependencies 
 pip install -r requirements.txt
