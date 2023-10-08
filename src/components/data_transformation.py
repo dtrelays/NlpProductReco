@@ -24,19 +24,34 @@ class DataTransformation:
 
             logging.info("Read clean data completed")
             
-            clean_data['combined_text'] = clean_data['combined_text'].apply(remove_special_characters)
-            clean_data['combined_text'] = clean_data['combined_text'].apply(remove_stop_words_and_lemmatize)
+            # List of column names to clean
+            columns_to_clean = ['combined_text','product', 'category', 'sub_category','brand','type']
+
+            # Apply the functions to each column in the DataFrame
+            for column in columns_to_clean:
+            # Apply the special character removal function
+                clean_data[column + '_v1'] = clean_data[column].apply(remove_special_characters)
+                
+                # Apply the stop word removal function
+                clean_data[column + '_v1'] = clean_data[column + '_v1'].apply(remove_stop_words_and_lemmatize)
             
-            clean_data['length'] = clean_data['combined_text'].str.len()
+            clean_data['length'] = clean_data['combined_text_v1'].str.len()
             
-            clean_data['word_count'] = clean_data['combined_text'].apply(lambda x: len(x.split()))
+            clean_data['word_count'] = clean_data['combined_text_v1'].apply(lambda x: len(x.split()))
             
-            sentences = [text.split() for text in clean_data['combined_text']]
-            
+            # Initialize an empty list for sentences
+            sentences = []
+
+            # List of columns you want to include
+            columns_to_train = ['combined_text_v1','product_v1', 'category_v1', 'sub_category_v1','brand_v1','type_v1']
+
+            # Iterate through the columns and extend the sentences list
+            for column in columns_to_train:
+                sentences.extend([text.split() for text in clean_data[column]])
+                            
             logging.info(
                 f"Created sentences from the combined text column"
             )
-
 
             return sentences,clean_data
         

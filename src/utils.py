@@ -46,3 +46,26 @@ def remove_stop_words_and_lemmatize(text):
     words = text.split()
     words = [lemmatizer.lemmatize(word.lower()) for word in words if word.lower() not in stop_words]
     return ' '.join(words)
+
+
+def calculate_weighted_average_vector(list_of_columns,weights,model):
+
+        vectors = []
+        for i, column in enumerate(list_of_columns):
+            # If the word is a phrase, split it into individual words.
+            if isinstance(column, str) and len(column.split()) > 1:
+                words = column.split()
+                for word in words:
+                    if word in model.wv:
+                        vectors.append(model.wv[word] * weights[i])
+        if vectors:
+            return np.sum(vectors, axis=0)/np.sum(weights) 
+        else:
+            return np.zeros(model.vector_size)
+
+def calculate_weighted_average_vector_fasttext(list_of_columns, weights,model):
+ 
+  vectors = []
+  for i, column in enumerate(list_of_columns):
+    vectors.append(model.wv[column] * weights[i])
+  return  np.sum(vectors, axis=0)/np.sum(weights) 

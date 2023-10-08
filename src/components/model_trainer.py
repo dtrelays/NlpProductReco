@@ -10,6 +10,7 @@ import pickle
 
 from src.exception import CustomException
 from src.logger import logging
+from src.utils import calculate_weighted_average_vector,calculate_weighted_average_vector_fasttext
 
 
 @dataclass
@@ -42,9 +43,12 @@ class ModelTrainer:
 
             product_vectors_fastext = []
 
-            for product_name_description_sentence in df_clean_data['combined_text']:
-                vector_fastext = model_fastext.wv[product_name_description_sentence]
-                product_vectors_fastext.append(vector_fastext)
+            # for product_name_description_sentence in df_clean_data['combined_text']:
+            #     vector_fastext = model_fastext.wv[product_name_description_sentence]
+            #     product_vectors_fastext.append(vector_fastext)
+            
+            # Create a product vector for each row in the DataFrame for fasttext
+            product_vectors_fastext = df_clean_data[['product_v1', 'category_v1', 'sub_category_v1', 'brand_v1', 'type_v1']].apply(lambda row: calculate_weighted_average_vector_fasttext(row.tolist(), [0.45, 0.15, 0.1, 0.25, 0.05],model_fastext), axis=1)
             
             logging.info("Embedding of the product vectors trained using fastext")
             
@@ -53,33 +57,26 @@ class ModelTrainer:
 
             sentence_vectors_wordtovec = []
 
-            for product_name_description_sentence in df_clean_data['combined_text']:
-                words = product_name_description_sentence.split()
-                vector = model_wordtovec.wv[words].mean(axis=0)
-                sentence_vectors_wordtovec.append(vector)
+            # for product_name_description_sentence in df_clean_data['combined_text']:
+            #     words = product_name_description_sentence.split()
+            #     vector = model_wordtovec.wv[words].mean(axis=0)
+            #     sentence_vectors_wordtovec.append(vector)
+                
+            # Create a product vector for each row in the DataFrame for Word2Vec
+            sentence_vectors_wordtovec = df_clean_data[['product_v1', 'category_v1', 'sub_category_v1', 'brand_v1', 'type_v1']].apply(lambda row: calculate_weighted_average_vector(row.tolist(), [0.45, 0.15, 0.1, 0.25, 0.05],model_wordtovec), axis=1)
 
             logging.info("Saving Embedding of the product vectors trained using word2vec")
 
             # Save the sentence vectors to a file using a format like Pickle or NumPy
             np.save(self.model_trainer_config.trained_vector_path_wordtovec, np.array(sentence_vectors_wordtovec))
             
-            
-            # Model using Bert
-            # model_bert = SentenceTransformer('bert-base-uncased')
-
-            # product_embeddings_bert = model_bert.encode(df_clean_data['combined_text'].tolist())
-            
-            # logging.info("Saving Embedding of the product vectors trained using bert")
-
-            # Save the product embeddings to a file (e.g., a Pickle file)
-            # np.save(self.model_trainer_config.trained_vector_path_bert, product_embeddings_bert)
-            
             trained_wordtovec_len = len(sentence_vectors_wordtovec)
             trained_fastext_len = len(product_vectors_fastext)
-            # trained_bert_len = product_embeddings_bert.shape[0]
-            
+              
             return trained_wordtovec_len,trained_fastext_len
-        # ,trained_bert_len
-            
+     
         except Exception as e:
             raise CustomException(e,sys)
+        
+        
+    
